@@ -10,7 +10,7 @@ public class SpawnOfApples : MonoBehaviour
     public GameObject prefab;
     public int poolSize = 10; // Размер пула
     //float time = 6.0005f;
-    float time = 4f;
+    public float spawnDelay = 4f;
     private List<GameObject> pool = new List<GameObject>();
     float[] forRandom = new float[100];
     int lengthOfArray = 0;
@@ -40,43 +40,53 @@ public class SpawnOfApples : MonoBehaviour
         }
         StartCoroutine(Spawn());
     }
-    //private void Wait()
-    //{
-    //    if (time >= 1)
-    //    {
-    //        time -= 0.05f;
-    //    }
-    //}
-    // Update is called once per frame
-    void Update()
-    {       
+    private void Wait()
+    {
+        if (spawnDelay >= 1)
+        {
+            spawnDelay -= 0.05f;
+        }
+        Debug.Log(spawnDelay);
     }
 
     IEnumerator Spawn()
     {
-        //if (Score.countApples < poolSize)
-        //{
-            
-        //}
+        bool anyInactive = false;
+
+        // Проверяем, есть ли хотя бы один неактивный объект в пуле
         foreach (GameObject obj in pool)
         {
             if (!obj.activeSelf)
             {
-                Debug.Log("0");
+                anyInactive = true;
+                break;
             }
-            else
-            {
-                Debug.Log("1");
-            }
-            if (!obj.activeSelf)
-            {
-                Take(obj);
-                yield return new WaitForSeconds(time);
-            }
-
         }
-        StartCoroutine(Spawn());              
+
+        // Если есть хотя бы один неактивный объект, активируем его
+        if (anyInactive)
+        {
+            foreach (GameObject obj in pool)
+            {
+                if (!obj.activeSelf)
+                {
+                    Take(obj);
+                    yield return new WaitForSeconds(spawnDelay);
+                    Wait();
+                }
+            }
+        }
+        else
+        {
+            // Если все объекты активны, просто ждем следующего цикла спауна
+            yield return new WaitForSeconds(spawnDelay);
+        }
+
+        // После активации всех объектов вызываем Spawn снова
+        StartCoroutine(Spawn());
+        Debug.Log("Count: " + Score.countApples);
     }
+
 
     //private void Return(GameObject @object)
     //{
