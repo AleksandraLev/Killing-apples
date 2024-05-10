@@ -31,8 +31,8 @@ public class SpawnOfApples : MonoBehaviour
         // Инициализация пула объектов
         for (int i = 0; i < poolSize; i++)
         {
-            //Vector3 position = new Vector3(forRandom[UnityEngine.Random.Range(0, lengthOfArray)], -0.4f, forRandom[UnityEngine.Random.Range(0, lengthOfArray)]) + ProgrammManager.SpawnVector3;
-            Vector3 position = new Vector3(forRandom[UnityEngine.Random.Range(0, lengthOfArray)], -0.4f, forRandom[UnityEngine.Random.Range(0, lengthOfArray)]);
+            Vector3 position = new Vector3(forRandom[UnityEngine.Random.Range(0, lengthOfArray)], -0.4f, forRandom[UnityEngine.Random.Range(0, lengthOfArray)]) + ProgrammManager.SpawnVector3;
+            //Vector3 position = new Vector3(forRandom[UnityEngine.Random.Range(0, lengthOfArray)], -0.4f, forRandom[UnityEngine.Random.Range(0, lengthOfArray)]);
             GameObject obj = Instantiate(prefab, position, Quaternion.identity, prefab.transform);
             obj.SetActive(true);
             Score.countApples += 1;
@@ -99,9 +99,9 @@ public class SpawnOfApples : MonoBehaviour
     //}
     private void Take(GameObject @object)
     {
-        //@object.transform.position = new Vector3(forRandom[UnityEngine.Random.Range(0, lengthOfArray)], -0.4f, forRandom[UnityEngine.Random.Range(0, lengthOfArray)]) + ProgrammManager.SpawnVector3;
+        @object.transform.position = new Vector3(forRandom[UnityEngine.Random.Range(0, lengthOfArray)], -0.4f, forRandom[UnityEngine.Random.Range(0, lengthOfArray)]) + ProgrammManager.SpawnVector3;
         
-        @object.transform.position = new Vector3(forRandom[UnityEngine.Random.Range(0, lengthOfArray)], -0.4f, forRandom[UnityEngine.Random.Range(0, lengthOfArray)]);
+        //@object.transform.position = new Vector3(forRandom[UnityEngine.Random.Range(0, lengthOfArray)], -0.4f, forRandom[UnityEngine.Random.Range(0, lengthOfArray)]);
         @object.SetActive(true);
 
         Score.countApples += 1;

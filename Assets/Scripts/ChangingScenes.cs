@@ -11,7 +11,7 @@ public class ChangingScenes : MonoBehaviour
     
     public void PlayGame()
     {
-        SceneManager.LoadScene(0);
+        SceneManager.LoadScene(1);
         //SceneManager.UnloadScene(1);
         //SceneManager.LoadScene(SceneManager.GetSceneByName("Game").name);
         //SceneManager.UnloadScene(0);
@@ -19,9 +19,9 @@ public class ChangingScenes : MonoBehaviour
 
     public void ExitGame()
     {
-        SceneManager.LoadScene(1);
-        Debug.Log("Выход из игры");
-        Application.Quit();
+        SceneManager.LoadScene(0);
+        //Debug.Log("Выход из игры");
+        //Application.Quit();
         ForDatabase.MaxScoreTest = ScoreShow.maxScore;
     }
 
