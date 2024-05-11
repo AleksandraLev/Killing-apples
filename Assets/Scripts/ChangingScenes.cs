@@ -17,12 +17,14 @@ public class ChangingScenes : MonoBehaviour
         //SceneManager.UnloadScene(0);
     }
 
-    public void ExitGame()
+    public static void ExitGame()
     {
+        Score.countApples = 0;
+        Score.score = 0;
         SceneManager.LoadScene(0);
         //Debug.Log("Выход из игры");
         //Application.Quit();
-        ForDatabase.MaxScoreTest = ScoreShow.maxScore;
+        ForDatabase.MaxScoreTest = ScoreShow_AND_WinAndOver.maxScore;
     }
 
 }

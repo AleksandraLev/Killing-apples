@@ -93,7 +93,7 @@ public class ForDatabase : MonoBehaviour
         Email = _EmailInput;
         Password = _PasswordInput;
         MaxScore.text = "0";
-        ScoreShow.maxScore = 0;
+        ScoreShow_AND_WinAndOver.maxScore = 0;
         NameTestForFindInfo.text = _NameInput;
 
         NameInput.text = "";
@@ -126,7 +126,7 @@ public class ForDatabase : MonoBehaviour
                 MaxScore.text = reader.GetString(3);
             }
 
-            ScoreShow.maxScore = int.Parse(MaxScore.text);
+            ScoreShow_AND_WinAndOver.maxScore = int.Parse(MaxScore.text);
             Name = NameTestForFindInfo.text;
             Email = EmailTextForFindInfo.text;
             Password = _PasswordInputForFindInfo.text;
