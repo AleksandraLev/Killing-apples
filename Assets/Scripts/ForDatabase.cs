@@ -19,9 +19,9 @@ public class ForDatabase : MonoBehaviour
     public static int MaxScoreTest;
 
 
-    public Text NameTestForFindInfo;
-    public Text EmailTextForFindInfo;
-    public Text PasswordTextForFindInfo;
+    public Text NameTestForShow;
+    //public Text EmailTextForFindInfo;
+    //public Text PasswordTextForFindInfo;
     public Text MaxScore;
     public InputField _EmailInputForFindInfo;
     public InputField _PasswordInputForFindInfo;
@@ -44,10 +44,8 @@ public class ForDatabase : MonoBehaviour
             Logged.SetActive(true);
             Menu.SetActive(false);
             LoggedMessage.SetActive(false);
-            if (Name != null)
-            {
-                NameTestForFindInfo.text = Name;
-            }
+            NameInputForUpdate.Select();
+            NameTestForShow.text = Name;
             if (MaxScore.text != MaxScoreTest.ToString())
             {
                 MaxScore.text = MaxScoreTest.ToString();
@@ -55,50 +53,84 @@ public class ForDatabase : MonoBehaviour
             }
         }
     }
+
+    public GameObject A_user_with_such_an_email_already_exists;
     public void InsertInfo()
     {
         var _NameInput = NameInput.text.Trim();
         var _EmailInput = EmailInput.text.Trim();
         var _PasswordInput = PasswordInput.text;
 
-
-
-
+        bool EmailNull = true;
         string coon = SetDataBaseClass.SetDataBase(DataBaseName + ".db");
         IDbConnection dbcon;
         IDbCommand dbcmd;
         IDataReader reader;
-
-        dbcon = new SqliteConnection(coon);
-        dbcon.Open();
-        dbcmd = dbcon.CreateCommand();
-        string SQLQuery = "Insert Into Users(Name,Email,Password,MaxScore) " +
-            "Values('" + _NameInput + "', '" + _EmailInput + "', '" + _PasswordInput + "', '" + 0 + "')";
-        dbcmd.CommandText = SQLQuery;
-        //string SQLQueryForID = "Select ID FROM Users Where Email='" + _EmailInput + "' And Password='" + _PasswordInput + "'";
-        //dbcmd.CommandText = SQLQueryForID;
-        reader = dbcmd.ExecuteReader();
-        while (reader.Read())
+        try
         {
-            //ID = reader.GetString(0);
+            dbcon = new SqliteConnection(coon);
+            dbcon.Open();
+            dbcmd = dbcon.CreateCommand();
+            string SQLQuery = "Select ID, Name, Email, Password, MaxScore FROM Users Where Email='" + _EmailInput + "' And Password='" + _PasswordInputForFindInfo.text.Trim() + "'";
+            dbcmd.CommandText = SQLQuery;
+            reader = dbcmd.ExecuteReader();
+            while (reader.Read())
+            {
+                EmailNull = false;
+            }
+
+            //ScoreShow_AND_WinAndOver.maxScore = int.Parse(MaxScore.text);
+            //Name = NameTestForFindInfo.text;
+            //Email = _EmailInputForFindInfo.text;
+            //Password = _PasswordInputForFindInfo.text;
+            reader.Close();
+            reader = null;
+            dbcmd.Dispose();
+            dbcmd = null;
+            dbcon.Close();
+            dbcon = null;
+            A_user_with_such_an_email_already_exists.SetActive(true);
         }
-        reader.Close();
-        reader = null;
-        dbcmd.Dispose();
-        dbcmd = null;
-        dbcon.Close();
-        dbcon = null;
+        catch (Exception e)
+        {
+            Debug.Log(e.Message);
+            EmailNull = true;
+            A_user_with_such_an_email_already_exists.SetActive(false);
+        }
+        if (EmailNull)
+        {
+            dbcon = new SqliteConnection(coon);
+            dbcon.Open();
+            dbcmd = dbcon.CreateCommand();
+            string SQLQuery = "Insert Into Users(Name,Email,Password,MaxScore) " +
+                "Values('" + _NameInput + "', '" + _EmailInput + "', '" + _PasswordInput + "', '0')";
+            dbcmd.CommandText = SQLQuery;
+            //string SQLQueryForID = "Select ID FROM Users Where Email='" + _EmailInput + "' And Password='" + _PasswordInput + "'";
+            //dbcmd.CommandText = SQLQueryForID;
+            reader = dbcmd.ExecuteReader();
+            while (reader.Read())
+            {
+                //ID = reader.GetString(0);
+            }
+            reader.Close();
+            reader = null;
+            dbcmd.Dispose();
+            dbcmd = null;
+            dbcon.Close();
+            dbcon = null;
 
-        Name = _NameInput;
-        Email = _EmailInput;
-        Password = _PasswordInput;
-        MaxScore.text = "0";
-        ScoreShow_AND_WinAndOver.maxScore = 0;
-        NameTestForFindInfo.text = _NameInput;
+            Name = _NameInput;
+            Email = _EmailInput;
+            Password = _PasswordInput;
+            MaxScore.text = "0";
+            ScoreShow_AND_WinAndOver.maxScore = 0;
+            NameTestForShow.text = _NameInput;
 
-        NameInput.text = "";
-        EmailInput.text = "";
-        PasswordInput.text = "";
+            NameInput.text = "";
+            EmailInput.text = "";
+            PasswordInput.text = "";
+        }
+
     }
 
 
@@ -114,22 +146,25 @@ public class ForDatabase : MonoBehaviour
             dbcon = new SqliteConnection(coon);
             dbcon.Open();
             dbcmd = dbcon.CreateCommand();
-            string SQLQuery = "Select ID, Name, Email, MaxScore FROM Users Where Email='" + _EmailInputForFindInfo.text.Trim() + "' And Password='" + _PasswordInputForFindInfo.text.Trim() + "'";
+            string SQLQuery = "Select ID, Name, Email, Password, MaxScore FROM Users Where Email='" + _EmailInputForFindInfo.text.Trim() + "' And Password='" + _PasswordInputForFindInfo.text.Trim() + "'";
             dbcmd.CommandText = SQLQuery;
             reader = dbcmd.ExecuteReader();
             while (reader.Read())
             {
                 // This part for item from batabase
                 //ID = reader.GetString(0);
-                NameTestForFindInfo.text = reader.GetString(1);
-                EmailTextForFindInfo.text = reader.GetString(2);
-                MaxScore.text = reader.GetString(3);
+                Name = reader.GetString(1);
+                NameTestForShow.text = reader.GetString(1);
+                Email = reader.GetString(2);
+                Password = reader.GetString(3);
+                MaxScore.text = reader.GetString(4);
+                ScoreShow_AND_WinAndOver.maxScore = int.Parse(reader.GetString(4));
             }
 
-            ScoreShow_AND_WinAndOver.maxScore = int.Parse(MaxScore.text);
-            Name = NameTestForFindInfo.text;
-            Email = EmailTextForFindInfo.text;
-            Password = _PasswordInputForFindInfo.text;
+            //ScoreShow_AND_WinAndOver.maxScore = int.Parse(MaxScore.text);
+            //Name = NameTestForFindInfo.text;
+            //Email = _EmailInputForFindInfo.text;
+            //Password = _PasswordInputForFindInfo.text;
             reader.Close();
             reader = null;
             dbcmd.Dispose();
@@ -137,7 +172,7 @@ public class ForDatabase : MonoBehaviour
             dbcon.Close();
             dbcon = null;
 
-            if (NameTestForFindInfo.text != "" || EmailTextForFindInfo.text != "")
+            if (_EmailInputForFindInfo.text != "" || _PasswordInputForFindInfo.text != "")
             {
                 SceneLogedIn.SetActive(true);
                 SceneLogIn.SetActive(false);
@@ -148,8 +183,9 @@ public class ForDatabase : MonoBehaviour
                 AccountError.SetActive(true);
             }
         }
-        catch
+        catch (Exception e)
         {
+            Debug.Log(e.Message);
             AccountError.SetActive(true);
         }
 
@@ -193,7 +229,7 @@ public class ForDatabase : MonoBehaviour
                 dbcmd.Parameters.Add(new SqliteParameter("@Password", PasswordInputForUpdate.text));
                 dbcmd.Parameters.Add(new SqliteParameter("@EmailCopy", emailCopy));
 
-                NameTestForFindInfo.text = NameInputForUpdate.text;
+                NameTestForShow.text = NameInputForUpdate.text;
 
                 // Выполнение SQL-запроса
                 dbcmd.ExecuteNonQuery();
@@ -220,9 +256,9 @@ public class ForDatabase : MonoBehaviour
 
                 // Задание параметров запроса
                 dbcmd.Parameters.Add(new SqliteParameter("@MaxScore", MaxScoreTest.ToString()));
-                dbcmd.Parameters.Add(new SqliteParameter("@EmailCopy", emailCopy));
+                //dbcmd.Parameters.Add(new SqliteParameter("@EmailCopy", emailCopy));
 
-                NameTestForFindInfo.text = NameInputForUpdate.text;
+                NameTestForShow.text = NameInputForUpdate.text;
 
                 // Выполнение SQL-запроса
                 dbcmd.ExecuteNonQuery();
@@ -230,9 +266,43 @@ public class ForDatabase : MonoBehaviour
         }
     }
 
+    public void DeleteInfo()
+    {
+        try
+        {
+            string coon = SetDataBaseClass.SetDataBase(DataBaseName + ".db");
+            IDbConnection dbcon;
+            IDbCommand dbcmd;
+
+            dbcon = new SqliteConnection(coon);
+            dbcon.Open();
+            dbcmd = dbcon.CreateCommand();
+
+            // SQL-запрос для удаления аккаунта по электронной почте
+            string SQLQuery = "DELETE FROM Users WHERE Email='" + Email + "'";
+            dbcmd.CommandText = SQLQuery;
+
+            // Выполнение SQL-запроса
+            dbcmd.ExecuteNonQuery();
+
+            // Очистка данных пользователя
+            Name = null;
+            Email = null;
+            Password = null;
+            MaxScore.text = "";
+            NameTestForShow.text = "";
+            ScoreShow_AND_WinAndOver.maxScore = 0;
+        }
+        catch (Exception ex)
+        {
+            // Обработка ошибок при удалении аккаунта
+            Debug.LogError(ex.Message);
+        }
+    }
     public void Exist()
     {
-        NameTestForFindInfo.text = "";
+        NameTestForShow.text = "";
         MaxScore.text = "";
+        A_user_with_such_an_email_already_exists.SetActive(false);
     }
 }
