@@ -8,6 +8,7 @@ public class ForButtonMenuOrDelete : MonoBehaviour
     public InputField NameInput;
     public InputField EmailInput;
     public InputField PasswordInput;
+    public Text PanelTest;
     public void ÑlearFields()
     {
         if (NameInput != null)
@@ -25,5 +26,6 @@ public class ForButtonMenuOrDelete : MonoBehaviour
             PasswordInput.Select();
             PasswordInput.text = "";
         }
+        PanelTest.text = "";
     }
 }

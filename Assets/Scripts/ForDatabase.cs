@@ -3,6 +3,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -30,7 +31,6 @@ public class ForDatabase : MonoBehaviour
     public static string Password;
     public GameObject SceneLogIn;
     public GameObject SceneLogedIn;
-    public GameObject AccountError;
 
 
     public InputField NameInputForUpdate;
@@ -48,152 +48,169 @@ public class ForDatabase : MonoBehaviour
             NameTestForShow.text = Name;
             if (MaxScore.text != MaxScoreTest.ToString())
             {
-                MaxScore.text = MaxScoreTest.ToString();
+                MaxScore.text = "Рекорд: " + MaxScoreTest.ToString();
                 UpdateMaxScore();
             }
         }
     }
 
-    public GameObject A_user_with_such_an_email_already_exists;
+    public Text RegisterPanelText;
+    public GameObject SceneIsRegistered;
+    public GameObject SceneRegister;
     public void InsertInfo()
     {
         var _NameInput = NameInput.text.Trim();
         var _EmailInput = EmailInput.text.Trim();
         var _PasswordInput = PasswordInput.text;
-
-        bool EmailNull = true;
-        string coon = SetDataBaseClass.SetDataBase(DataBaseName + ".db");
-        IDbConnection dbcon;
-        IDbCommand dbcmd;
-        IDataReader reader;
-        try
+        if (!string.IsNullOrEmpty(_NameInput) && !string.IsNullOrEmpty(_EmailInput) && !string.IsNullOrEmpty(_PasswordInput))
         {
-            dbcon = new SqliteConnection(coon);
-            dbcon.Open();
-            dbcmd = dbcon.CreateCommand();
-            string SQLQuery = "Select ID, Name, Email, Password, MaxScore FROM Users Where Email='" + _EmailInput + "' And Password='" + _PasswordInputForFindInfo.text.Trim() + "'";
-            dbcmd.CommandText = SQLQuery;
-            reader = dbcmd.ExecuteReader();
-            while (reader.Read())
+            string coon = SetDataBaseClass.SetDataBase(DataBaseName + ".db");
+            using (IDbConnection dbcon = new SqliteConnection(coon))
             {
-                EmailNull = false;
-            }
+                dbcon.Open();
 
-            //ScoreShow_AND_WinAndOver.maxScore = int.Parse(MaxScore.text);
-            //Name = NameTestForFindInfo.text;
-            //Email = _EmailInputForFindInfo.text;
-            //Password = _PasswordInputForFindInfo.text;
-            reader.Close();
-            reader = null;
-            dbcmd.Dispose();
-            dbcmd = null;
-            dbcon.Close();
-            dbcon = null;
-            A_user_with_such_an_email_already_exists.SetActive(true);
-        }
-        catch (Exception e)
-        {
-            Debug.Log(e.Message);
-            EmailNull = true;
-            A_user_with_such_an_email_already_exists.SetActive(false);
-        }
-        if (EmailNull)
-        {
-            dbcon = new SqliteConnection(coon);
-            dbcon.Open();
-            dbcmd = dbcon.CreateCommand();
-            string SQLQuery = "Insert Into Users(Name,Email,Password,MaxScore) " +
-                "Values('" + _NameInput + "', '" + _EmailInput + "', '" + _PasswordInput + "', '0')";
-            dbcmd.CommandText = SQLQuery;
-            //string SQLQueryForID = "Select ID FROM Users Where Email='" + _EmailInput + "' And Password='" + _PasswordInput + "'";
-            //dbcmd.CommandText = SQLQueryForID;
-            reader = dbcmd.ExecuteReader();
-            while (reader.Read())
+                // Создание и настройка SQL-команды
+                using (IDbCommand dbcmd = dbcon.CreateCommand())
+                {
+                    // Параметризованный SQL-запрос для получения электронной почты пользователя
+                    string SQLQuery = "SELECT Email FROM Users WHERE EMAIL=@Email";
+                    dbcmd.CommandText = SQLQuery;
+                    dbcmd.Parameters.Add(new SqliteParameter("@Email", _EmailInput));
+
+                    // Выполнение SQL-запроса и получение результата
+                    object result = dbcmd.ExecuteScalar();
+
+                    // Проверка результата на наличие значения
+                    if (result != null && result != DBNull.Value)
+                    {
+                        Debug.Log("Ошибка! Пользователь с такой почтой уже зарегистрирован!");
+                        SceneIsRegistered.SetActive(false);
+                        RegisterPanelText.text = "Пользователь с такой почтой уже существует";
+                        return;
+                    }
+                    else
+                    {
+                        RegisterPanelText.text = "";
+                    }
+                }
+                dbcon.Close();
+            }
+            using (IDbConnection dbcon = new SqliteConnection(coon))
             {
-                //ID = reader.GetString(0);
+                dbcon.Open();
+
+                // Создание и настройка SQL-команды
+                using (IDbCommand dbcmd = dbcon.CreateCommand())
+                {
+                    // SQL-запрос для добавления данных
+                    string SQLQuery = "Insert Into Users(Name,Email,Password,MaxScore) " + "Values('" + _NameInput + "', '" + _EmailInput + "', '" + _PasswordInput + "', '0')";
+                    dbcmd.CommandText = SQLQuery;
+
+                    // Выполнение SQL-запроса
+                    dbcmd.ExecuteNonQuery();
+
+                    Name = _NameInput;
+                    Email = _EmailInput;
+                    Password = _PasswordInput;
+                    MaxScore.text = "Рекорд: 0";
+                    ScoreShow_AND_WinAndOver.maxScore = 0;
+                    NameTestForShow.text = _NameInput;
+
+                    NameInput.text = "";
+                    EmailInput.text = "";
+                    PasswordInput.text = "";
+                }
+                dbcon.Close();
             }
-            reader.Close();
-            reader = null;
-            dbcmd.Dispose();
-            dbcmd = null;
-            dbcon.Close();
-            dbcon = null;
-
-            Name = _NameInput;
-            Email = _EmailInput;
-            Password = _PasswordInput;
-            MaxScore.text = "0";
-            ScoreShow_AND_WinAndOver.maxScore = 0;
-            NameTestForShow.text = _NameInput;
-
-            NameInput.text = "";
-            EmailInput.text = "";
-            PasswordInput.text = "";
+            SceneRegister.SetActive(false);
+            SceneIsRegistered.SetActive(true);
+            RegisterPanelText.text = "";
+        }
+        else
+        {
+            RegisterPanelText.text = "Заполните все поля!";
         }
 
     }
 
-
-
+    public Text LoginPanelText;
     public void FindInfo()
     {
-        try
+        var _EmailInput = _EmailInputForFindInfo.text.Trim();
+        var _PasswordInput = _PasswordInputForFindInfo.text;
+        if (!string.IsNullOrEmpty(_EmailInput) && !string.IsNullOrEmpty(_PasswordInput))
         {
-            string coon = SetDataBaseClass.SetDataBase(DataBaseName + ".db");
-            IDbConnection dbcon;
-            IDbCommand dbcmd;
-            IDataReader reader;
-            dbcon = new SqliteConnection(coon);
-            dbcon.Open();
-            dbcmd = dbcon.CreateCommand();
-            string SQLQuery = "Select ID, Name, Email, Password, MaxScore FROM Users Where Email='" + _EmailInputForFindInfo.text.Trim() + "' And Password='" + _PasswordInputForFindInfo.text.Trim() + "'";
-            dbcmd.CommandText = SQLQuery;
-            reader = dbcmd.ExecuteReader();
-            while (reader.Read())
+            string _coon = SetDataBaseClass.SetDataBase(DataBaseName + ".db");
+            using (IDbConnection dbcon = new SqliteConnection(_coon))
             {
-                // This part for item from batabase
-                //ID = reader.GetString(0);
-                Name = reader.GetString(1);
-                NameTestForShow.text = reader.GetString(1);
-                Email = reader.GetString(2);
-                Password = reader.GetString(3);
-                MaxScore.text = reader.GetString(4);
-                ScoreShow_AND_WinAndOver.maxScore = int.Parse(reader.GetString(4));
+                dbcon.Open();
+
+                // Создание и настройка SQL-команды
+                using (IDbCommand dbcmd = dbcon.CreateCommand())
+                {
+                    // Параметризованный SQL-запрос для получения электронной почты и пароля пользователя
+                    string SQLQuery = "SELECT Email FROM Users WHERE EMAIL=@Email And Password=@Password";
+                    dbcmd.CommandText = SQLQuery;
+                    dbcmd.Parameters.Add(new SqliteParameter("@Email", _EmailInput));
+                    dbcmd.Parameters.Add(new SqliteParameter("@Password", _PasswordInput));
+                    // Выполнение SQL-запроса и получение результата
+                    object result = dbcmd.ExecuteScalar();
+
+                    // Проверка результата на наличие значения
+                    if (result == null || result == DBNull.Value)
+                    {
+                        LoginPanelText.text = "Такого аккаунта не существует!";
+                        return;
+                    }
+                    else
+                    {
+                        LoginPanelText.text = "";
+                    }
+                }
+                dbcon.Close();
+            }
+            using (IDbConnection dbcon = new SqliteConnection(_coon))
+            {
+                dbcon.Open();
+
+                // Создание и настройка SQL-команды
+                using (IDbCommand dbcmd = dbcon.CreateCommand())
+                {
+                    //SQL-запрос для получения данных о пользователе
+                    string SQLQuery = "Select ID, Name, Email, Password, MaxScore FROM Users Where Email='" + _EmailInputForFindInfo.text.Trim() + "' And Password='" + _PasswordInputForFindInfo.text.Trim() + "'";
+                    dbcmd.CommandText = SQLQuery;
+                    // Выполнение SQL-запроса и получение результата
+                    using (IDataReader reader = dbcmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            // This part for item from database
+                            //ID = reader.GetString(0);
+                            Name = reader.GetString(1);
+                            NameTestForShow.text = reader.GetString(1);
+                            Email = reader.GetString(2);
+                            Password = reader.GetString(3);
+                            MaxScore.text = "Рекорд: " + reader.GetString(4);
+                            ScoreShow_AND_WinAndOver.maxScore = int.Parse(reader.GetString(4));
+                        }
+                    }
+                    SceneLogedIn.SetActive(true);
+                    SceneLogIn.SetActive(false);
+                    LoginPanelText.text = "";
+                }
+                dbcon.Close();
             }
 
-            //ScoreShow_AND_WinAndOver.maxScore = int.Parse(MaxScore.text);
-            //Name = NameTestForFindInfo.text;
-            //Email = _EmailInputForFindInfo.text;
-            //Password = _PasswordInputForFindInfo.text;
-            reader.Close();
-            reader = null;
-            dbcmd.Dispose();
-            dbcmd = null;
-            dbcon.Close();
-            dbcon = null;
-
-            if (_EmailInputForFindInfo.text != "" || _PasswordInputForFindInfo.text != "")
-            {
-                SceneLogedIn.SetActive(true);
-                SceneLogIn.SetActive(false);
-                AccountError.SetActive(false);
-            }
-            else
-            {
-                AccountError.SetActive(true);
-            }
+            _EmailInputForFindInfo.Select();
+            _EmailInputForFindInfo.text = "";
+            _PasswordInputForFindInfo.Select();
+            _PasswordInputForFindInfo.text = "";
+            LoginPanelText.text = "";
         }
-        catch (Exception e)
+        else
         {
-            Debug.Log(e.Message);
-            AccountError.SetActive(true);
+            LoginPanelText.text = "Заполните все поля!";
         }
-
-        _EmailInputForFindInfo.Select();
-        _EmailInputForFindInfo.text = "";
-        _PasswordInputForFindInfo.Select();
-        _PasswordInputForFindInfo.text = "";
-
     }
 
     public void BeforeUpdateInfo()
@@ -206,34 +223,44 @@ public class ForDatabase : MonoBehaviour
         PasswordInputForUpdate.text = Password;
     }
 
+    public Text UpdatePanelText;
     public void UpdateInfo()
     {
-        string emailCopy = Email; // Приведение к camelCase для переменной EmailCopy
-
-        // Создание подключения к базе данных
-        string connectionString = SetDataBaseClass.SetDataBase(DataBaseName + ".db");
-        using (IDbConnection dbcon = new SqliteConnection(connectionString))
+        if (!string.IsNullOrEmpty(NameInputForUpdate.text.Trim()) && !string.IsNullOrEmpty(EmailInputForUpdate.text.Trim()) && !string.IsNullOrEmpty(PasswordInputForUpdate.text.Trim()))
         {
-            dbcon.Open();
+            string emailCopy = Email; // Приведение к camelCase для переменной EmailCopy
 
-            // Создание и настройка SQL-команды
-            using (IDbCommand dbcmd = dbcon.CreateCommand())
+            // Создание подключения к базе данных
+            string connectionString = SetDataBaseClass.SetDataBase(DataBaseName + ".db");
+            using (IDbConnection dbcon = new SqliteConnection(connectionString))
             {
-                // Параметризованный SQL-запрос для обновления данных
-                string SQLQuery = "UPDATE Users SET Name = @Name, Email = @Email, Password = @Password WHERE Email = @EmailCopy";
-                dbcmd.CommandText = SQLQuery;
+                dbcon.Open();
 
-                // Задание параметров запроса
-                dbcmd.Parameters.Add(new SqliteParameter("@Name", NameInputForUpdate.text));
-                dbcmd.Parameters.Add(new SqliteParameter("@Email", EmailInputForUpdate.text));
-                dbcmd.Parameters.Add(new SqliteParameter("@Password", PasswordInputForUpdate.text));
-                dbcmd.Parameters.Add(new SqliteParameter("@EmailCopy", emailCopy));
+                // Создание и настройка SQL-команды
+                using (IDbCommand dbcmd = dbcon.CreateCommand())
+                {
+                    // Параметризованный SQL-запрос для обновления данных
+                    string SQLQuery = "UPDATE Users SET Name = @Name, Email = @Email, Password = @Password WHERE Email = @EmailCopy";
+                    dbcmd.CommandText = SQLQuery;
 
-                NameTestForShow.text = NameInputForUpdate.text;
+                    // Задание параметров запроса
+                    dbcmd.Parameters.Add(new SqliteParameter("@Name", NameInputForUpdate.text));
+                    dbcmd.Parameters.Add(new SqliteParameter("@Email", EmailInputForUpdate.text));
+                    dbcmd.Parameters.Add(new SqliteParameter("@Password", PasswordInputForUpdate.text));
+                    dbcmd.Parameters.Add(new SqliteParameter("@EmailCopy", emailCopy));
 
-                // Выполнение SQL-запроса
-                dbcmd.ExecuteNonQuery();
+                    NameTestForShow.text = NameInputForUpdate.text;
+
+                    // Выполнение SQL-запроса
+                    dbcmd.ExecuteNonQuery();
+                    UpdatePanelText.text = "Данные были изменены";
+                }
+
             }
+        }
+        else
+        {
+            UpdatePanelText.text = "Заполните все поля!";
         }
     }
 
@@ -303,6 +330,8 @@ public class ForDatabase : MonoBehaviour
     {
         NameTestForShow.text = "";
         MaxScore.text = "";
-        A_user_with_such_an_email_already_exists.SetActive(false);
+        RegisterPanelText.text = "";
+        LoginPanelText.text = "";
+        UpdatePanelText.text = "";
     }
 }
