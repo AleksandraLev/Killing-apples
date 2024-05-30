@@ -283,7 +283,7 @@ public class ForDatabase : MonoBehaviour
 
                 // Задание параметров запроса
                 dbcmd.Parameters.Add(new SqliteParameter("@MaxScore", MaxScoreTest.ToString()));
-                //dbcmd.Parameters.Add(new SqliteParameter("@EmailCopy", emailCopy));
+                dbcmd.Parameters.Add(new SqliteParameter("@EmailCopy", emailCopy));
 
                 NameTestForShow.text = NameInputForUpdate.text;
 
@@ -326,7 +326,7 @@ public class ForDatabase : MonoBehaviour
             Debug.LogError(ex.Message);
         }
     }
-    public void Exist()
+    public void Exit()
     {
         NameTestForShow.text = "";
         MaxScore.text = "";

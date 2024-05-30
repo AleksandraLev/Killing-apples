@@ -10,7 +10,7 @@ public class SpawnOfApples : MonoBehaviour
     public GameObject prefab;
     int poolSize = 20; // Размер пула
     //float time = 6.0005f;
-    public float spawnDelay = 4f;
+    public float spawnDelay = 3f;
     private List<GameObject> pool = new List<GameObject>();
     float[] forRandom = new float[100];
     int lengthOfArray = 0;

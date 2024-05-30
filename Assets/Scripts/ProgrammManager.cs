@@ -11,7 +11,7 @@ public class ProgrammManager : MonoBehaviour
     private ARRaycastManager ARRaycastManagerScript;
     public static Vector3 SpawnVector3;
     public GameObject ObjectToSpawn;
-    bool start = true;
+    bool start = false;
     void Start()
     {
         ARRaycastManagerScript = FindObjectOfType<ARRaycastManager>();
@@ -46,5 +46,10 @@ public class ProgrammManager : MonoBehaviour
             PlaneMarkerPrefab.SetActive(false);
             start = false;
         }
+    }
+
+    public void StartToTrue()
+    {
+        start = true;
     }
 }
